@@ -1,0 +1,21 @@
+---
+import Seal from './Seal.astro';
+import { url } from '../config';
+import type { CollectionEntry } from 'astro:content';
+interface Props { items: CollectionEntry<'articles'>[] }
+const { items } = Astro.props;
+---
+<ul class="article-list">
+  {items.map((a) => (
+    <li>
+      <a href={url(`articles/${a.id}`)}>
+        <Seal text={a.data.seal} size="sm" mine={a.data.mine} />
+        <span>
+          {a.data.mine && <span class="mine-tag">我的教訓</span>}
+          <strong>{a.data.title}</strong>
+          <span class="desc">{a.data.description}</span>
+        </span>
+      </a>
+    </li>
+  ))}
+</ul>

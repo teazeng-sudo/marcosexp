@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+import Seal from '../../components/Seal.astro';
+import { getCollection, render } from 'astro:content';
+import { CATEGORIES, LESSONS, url } from '../../config';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('articles', (a) => !a.data.draft));
+  // 全站的閱讀順序：先照分類的層級順序，同分類內再照日期
+  const order = CATEGORIES.flatMap((c) =>
+    all.filter((a) => a.data.category === c.id).sort((x, y) => x.data.date.getTime() - y.data.date.getTime())
+  );
+  return order.map((a, i) => ({
+    params: { slug: a.id },
+    props: { article: a, prev: order[i - 1] ?? null, next: order[i + 1] ?? null },
+  }));
+}
+const { article, prev, next } = Astro.props;
+const { Content } = await render(article);
+const cat = CATEGORIES.find((c) => c.id === article.data.category)!;
+const catOf = (a: typeof article) => CATEGORIES.find((c) => c.id === a.data.category)!;
+const date = article.data.date.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
+const mine = article.data.mine;
+---
+<Base title={article.data.title} description={article.data.description} current={cat.id}>
+  <article>
+    <header class="page-head">
+      <p class="crumb"><a href={url(`category/${cat.id}`)}>{cat.label}：{cat.name}</a></p>
+      <h1>{article.data.title}</h1>
+      <p class="meta">
+        <time datetime={article.data.date.toISOString()}>{date}</time>
+        {mine && <> ／ <a href={url('lessons')} class="mine-tag">我的教訓</a></>}
+      </p>
+    </header>
+    <aside class={`keypoint${mine ? ' keypoint-mine' : ''}`}>
+      <Seal text={article.data.seal} mine={mine} />
+      <p>{article.data.keyPoint}</p>
+    </aside>
+    <div class="prose"><Content /></div>
+  </article>
+
+  <nav class="pager" aria-label="文章導覽">
+    {next ? (
+      <a class="pager-next" href={url(`articles/${next.id}`)}>
+        <span class="pager-tag">下一篇{catOf(next).id !== cat.id && <>：{catOf(next).label} {catOf(next).name}</>}</span>
+        <strong>{next.data.title}</strong>
+        <span class="pager-desc">{next.data.description}</span>
+      </a>
+    ) : (
+      <a class="pager-next" href={url()}>
+        <span class="pager-tag">讀完了</span>
+        <strong>回到目錄，挑下一個主題</strong>
+      </a>
+    )}
+    {prev && (
+      <a class="pager-prev" href={url(`articles/${prev.id}`)}>
+        <span class="pager-tag">上一篇</span>
+        <strong>{prev.data.title}</strong>
+      </a>
+    )}
+  </nav>
+</Base>

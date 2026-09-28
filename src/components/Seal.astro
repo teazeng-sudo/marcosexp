@@ -1,0 +1,6 @@
+---
+// 一般文章用朱文印（紅字外框），親身經歷用白文印（紅底白字）
+interface Props { text: string; size?: 'sm' | 'lg'; mine?: boolean }
+const { text, size = 'lg', mine = false } = Astro.props;
+---
+<span class={`seal seal-${size} len-${text.length}${mine ? ' seal-mine' : ''}`} aria-label={`${mine ? '我的教訓，' : ''}重點：${text}`}>{text}</span>

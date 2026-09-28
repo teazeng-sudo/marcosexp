@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import ArticleList from '../../components/ArticleList.astro';
+import { getCollection } from 'astro:content';
+import { CATEGORIES, url } from '../../config';
+
+export function getStaticPaths() {
+  return CATEGORIES.map((c) => ({ params: { id: c.id }, props: { cat: c } }));
+}
+const { cat } = Astro.props;
+const articles = (await getCollection('articles', (a) => !a.data.draft && a.data.category === cat.id))
+  .sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
+---
+<Base title={cat.name} description={cat.blurb} current={cat.id}>
+  <header class="page-head">
+    <p class="crumb">{cat.label}</p>
+    <h1>{cat.name}</h1>
+    <p class="lead">{cat.blurb}</p>
+  </header>
+  {articles.length === 0
+    ? <p class="empty">這裡還在寫。可以先從<a href={url('category/value')}>你拿什麼交換</a>開始看。</p>
+    : <ArticleList items={articles} />}
+</Base>

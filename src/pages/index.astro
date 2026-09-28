@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import ArticleList from '../components/ArticleList.astro';
+import { getCollection } from 'astro:content';
+import { SITE, LAYERS, TOOLS, LESSONS, url } from '../config';
+
+const articles = (await getCollection('articles', (a) => !a.data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const count = (id: string) => articles.filter((a) => a.data.category === id).length;
+const lessonCount = articles.filter((a) => a.data.mine).length;
+---
+<Base>
+  <section class="hero">
+    <h1 class="hero-title">{SITE.name}</h1>
+    <div class="hero-body">
+      <p class="hero-lead">做生意靠的不是話術，是誠信和人與人之間的往來。</p>
+      <p>法律和合約，是建立在這個基礎上的保險。這裡把我這些年學到的，整理成不是商科出身也看得懂的道理，希望有緣讀到的人少走一點冤枉路，也不要被人騙。</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="order">
+    <h2 id="order" class="section-title">建議從第一層讀起</h2>
+    <ol class="ledger">
+      {LAYERS.map((c) => (
+        <li>
+          <span class="ledger-num" aria-hidden="true">{c.num}</span>
+          <a href={url(`category/${c.id}`)} class="ledger-main">
+            <strong>{c.name}</strong>
+            <span>{c.blurb}</span>
+          </a>
+          <span class="ledger-count">{count(c.id)} 篇</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section aria-labelledby="tools">
+    <h2 id="tools" class="section-title">隨時查</h2>
+    <ul class="ledger ledger-tools">
+      <li>
+        <span class="ledger-num" aria-hidden="true"><span class="seal seal-dot seal-mine"></span></span>
+        <a href={url('lessons')} class="ledger-main">
+          <strong>{LESSONS.name}</strong>
+          <span>{LESSONS.blurb}</span>
+        </a>
+        <span class="ledger-count">{lessonCount} 篇</span>
+      </li>
+      {TOOLS.map((c) => (
+        <li>
+          <span class="ledger-num" aria-hidden="true"></span>
+          <a href={url(`category/${c.id}`)} class="ledger-main">
+            <strong>{c.name}</strong>
+            <span>{c.blurb}</span>
+          </a>
+          <span class="ledger-count">{count(c.id)} 篇</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  {articles.length > 0 && (
+    <section aria-labelledby="latest">
+      <h2 id="latest" class="section-title">最近寫的</h2>
+      <ArticleList items={articles.slice(0, 5)} />
+    </section>
+  )}
+</Base>

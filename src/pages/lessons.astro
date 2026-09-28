@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import ArticleList from '../components/ArticleList.astro';
+import { getCollection } from 'astro:content';
+import { LESSONS, url } from '../config';
+
+const articles = (await getCollection('articles', (a) => !a.data.draft && a.data.mine))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+<Base title={LESSONS.name} description={LESSONS.blurb} current="lessons">
+  <header class="page-head">
+    <p class="crumb">工具區</p>
+    <h1>{LESSONS.name}</h1>
+    <p class="lead">{LESSONS.blurb}道理人人會講，自己跌過的地方才記得牢。</p>
+  </header>
+  {articles.length === 0
+    ? <p class="empty">還沒有文章。可以先從<a href={url('category/value')}>你拿什麼交換</a>開始看。</p>
+    : <ArticleList items={articles} />}
+</Base>
